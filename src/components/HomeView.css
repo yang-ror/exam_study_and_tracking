@@ -1,0 +1,45 @@
+.exam-selector{
+    position: absolute;
+    top: 350px;
+}
+
+.btn-holders{
+    width: 550px;
+    display: flex;
+    justify-content: space-between;
+    position: absolute;
+    top: 450px;
+}
+
+.mode-select-btn{
+    height: 75px;
+    width: 200px;
+}
+
+.logo-holder{
+    position: absolute;
+    top: 50px;
+    background-color: #1c2c4c;
+    border-radius: 20px;
+}
+
+.App-logo {
+    height: 200px;
+    pointer-events: none;
+    
+  }
+  
+@media (prefers-reduced-motion: no-preference) {
+  .App-logo {
+    animation: App-logo-spin infinite 20s linear;
+  }
+}
+
+@keyframes App-logo-spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}

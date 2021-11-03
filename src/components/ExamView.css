@@ -1,0 +1,70 @@
+.left-panel{
+    float: left;
+    width: 110px;
+    height: 100%;
+    background-color: #001629;
+}
+
+.top-indicator{
+    width: 100%;
+}
+
+.number{
+    display: inline-block;
+    margin-left: 30px;
+}
+
+.tools{
+    float: right;
+    margin-right: 30px;
+}
+
+.question-text-holder{
+    padding-left: 30px;
+    padding-right: 30px;
+    height: 250px;
+    font-size: 1.2em;
+    overflow-y: auto;
+}
+
+.options-holder{
+    margin-left: 100px;
+    margin-right: 100px;
+}
+
+.question-btns-holder{
+    width: 100%;
+    position: absolute;
+    bottom: 30px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.question-btn-holder{
+    padding-left: 30px;
+    padding-right: 30px;
+}
+
+.options{
+    min-height: 60px;
+}
+
+.option-label{
+    margin-left: 20px;
+    cursor: pointer;
+}
+
+.MuiFormControlLabel-label{
+    padding-left: 1.7em;
+    text-indent: -1.3em;
+}
+
+.incorrect-ans{
+    color: red;
+    font-weight: bold;
+}
+
+.correct-ans{
+    color: #23a823;
+    font-weight: bold;
+}

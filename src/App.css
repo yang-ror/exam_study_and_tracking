@@ -1,0 +1,54 @@
+.App {
+  width: 100%;
+  height: 100%;
+}
+
+.main-container{
+  width: 100%;
+  height: 100%;
+}
+
+.view-container{
+  width: 1024px;
+  height: 768px;
+  border-radius: 10px;
+  background-color: rgb(230, 230, 230); 
+}
+
+.flex-center-content{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.flex-center-content-x{
+  display: flex;
+  justify-content: center;
+}
+
+.flex-center-content-y{
+  display: flex;
+  align-items: center;
+}
+
+.grid-center-content{
+  display: grid;
+  place-items: center;
+}
+
+.center-self{
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.center-self-x{
+  position: absolute;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+.link{
+  text-decoration: none;
+}
