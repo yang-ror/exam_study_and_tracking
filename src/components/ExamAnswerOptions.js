@@ -46,7 +46,7 @@ function OptionGroup({ optionObj, chooseMoreThanOne }){
         setValue(event.target.value);
         saveAns({
             questionId: questionId,
-            selectedOption: [event.target.value]
+            selectedOption: [parseInt(event.target.value)]
         })
     }
 

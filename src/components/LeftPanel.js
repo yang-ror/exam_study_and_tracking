@@ -12,10 +12,6 @@ import './LeftPanel.css'
 
 function renderRow({data, index, style }) {
     function goTo(){
-        // if(index === 0){
-        //     data.openDialogBox()
-        // }
-        // else 
         if(!data.inScore){
             data.history.push(`/e/${data.examNumber}/${data.mode}/${index+1}`)
         }
@@ -24,21 +20,12 @@ function renderRow({data, index, style }) {
         }
     }
 
-    // const ListElement = () => {
-    //     if(index === 0){
-    //         return  <Button variant="outlined">Home</Button>
-    //     }
-    //     else{
-    //         return <ListItemText primary={`# ${index} ${savedAnsLabel}`} />
-    //     }
-    // }
-
     var savedAnsLabel = ''
 
     if(data.mode === 'study'){
-        for(let feedback of data.feedbacks){
+        for(let feedback of data.saveAns){
             if(feedback.questionId === index){
-                var ansKey = getAnswerKeys(parseInt(data.examNumber), feedback.questionId)
+                const ansKey = getAnswerKeys(parseInt(data.examNumber), feedback.questionId)
                 for(let i = 0; i < ansKey.length; i++){
                     if(ansKey[i].correct && feedback.feedbackArray[i].feedback){
                         savedAnsLabel = ' - ' + String.fromCharCode(i+65)
@@ -48,7 +35,13 @@ function renderRow({data, index, style }) {
         }
     }
     else if(data.mode === 'exam'){
-
+        for(let selection of data.saveAns){
+            if(selection.questionId === data.questions[index].questionId){
+                if(selection.selectionArray.length > 0){
+                    savedAnsLabel = ' - ' + String.fromCharCode(selection.selectionArray[0] + 65)
+                }
+            }
+        }
     }
     
     return (
@@ -56,7 +49,6 @@ function renderRow({data, index, style }) {
             <ListItemButton onClick={goTo}>
                 <div className={`answered-questions ${parseInt(data.questionNumber)===index+1 && 'current-question'}`}>
                     <ListItemText primary={`# ${index+1} ${savedAnsLabel}`} />
-                    {/* <ListElement /> */}
                 </div>
             </ListItemButton>
         </ListItem>
@@ -74,15 +66,23 @@ const LeftPanel = () => {
     const handleConfirm = () => {
         history.push('/')
     }
+
+    const { mode, examNumber, questionNumber } = useParams()
     const questions = useSelector((state) => state.question)
     const feedbacks = useSelector((state) => state.feedback)
+    const selection = useSelector((state) => state.selection)
+
+    var saveAns
+
+    if(mode === 'study'){
+        saveAns = feedbacks
+    }
+    else if(mode === 'exam'){
+        saveAns = selection
+    }
     
     const location = useLocation()
-    
-    const { mode, examNumber, questionNumber } = useParams()
-
     var inScore = location.pathname === '/score'
-    
     var history = useHistory()
 
     if(questions.length === 0){
@@ -101,8 +101,15 @@ const LeftPanel = () => {
                         itemSize={46}
                         itemCount={questions.length}
                         overscanCount={5}
-                        itemData={{ mode: mode, inScore: inScore, history: history, openDialogBox: handleClickOpen, 
-                            examNumber:examNumber, questionNumber:questionNumber, feedbacks:feedbacks}}
+                        itemData={{ 
+                            mode: mode,
+                            questions: questions,
+                            inScore: inScore, 
+                            history: history, 
+                            openDialogBox: handleClickOpen, 
+                            examNumber:examNumber, 
+                            questionNumber:questionNumber, 
+                            saveAns:saveAns}}
                     >
                         {renderRow}
                     </FixedSizeList>

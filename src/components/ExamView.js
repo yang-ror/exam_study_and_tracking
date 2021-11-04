@@ -1,18 +1,15 @@
 import { useState } from 'react';
 import { useSelector } from 'react-redux'
 
-import { useHistory } from 'react-router-dom'
-import { useParams } from "react-router-dom"
+import { useHistory, useParams } from 'react-router-dom'
 import './ExamView.css'
 
 import Button from '@mui/material/Button'
 import LeftPanel from './LeftPanel'
 import StudyAnswerOptions from './StudyAnswerOptions'
 import ExamAnswerOptions from './ExamAnswerOptions'
-import DialogBox from './DialogBox';
-import ExitToAppIcon from '@mui/icons-material/ExitToApp';
-
-// import finsishExam from '../api/requests'
+import DialogBox from './DialogBox'
+import ExitToAppIcon from '@mui/icons-material/ExitToApp'
 
 function AnswerOptions({ mode, questionId, chooseMoreThanOne }){
     var optionArray = []
@@ -28,7 +25,6 @@ function AnswerOptions({ mode, questionId, chooseMoreThanOne }){
 
 const ExamView = () => {
     const [openDialogBox, setOpenDialogBox] = useState(false);
-    const selections = useSelector((state) => state.selections)
     const handleClickOpen = () => {
         setOpenDialogBox(true);
     }
@@ -39,11 +35,10 @@ const ExamView = () => {
         history.push('/')
     }
 
-    function getReadyForScore(){
-        console.log(selections)
-        // finsishExam(selections)
-        // history.push('/score')
-    }
+    // function getReadyForScore(){
+    //     getExamResult(selection)
+    //     history.push('/score')
+    // }
 
     const { mode, examNumber, questionNumber } = useParams()
     let history = useHistory()
@@ -52,12 +47,11 @@ const ExamView = () => {
         history.push('/')
         return false
     }
-    const question = questions.find(question => question.questionId === questionNumber-1)
+    const question = questions[questionNumber-1]
 
     return (
         <div className="main-container">
             <DialogBox open={openDialogBox} handleClose={handleClose} handleConfirm={handleConfirm} />
-            {/* <IconButton color="secondary" aria-label="home"><HomeIcon /></IconButton> */}
             <Button onClick={handleClickOpen} size="large" color="secondary" endIcon={<ExitToAppIcon />}>End Exam</Button>
             <div className="left-panel">
                 <LeftPanel />
@@ -88,14 +82,13 @@ const ExamView = () => {
                         </Button>
                     </div>
                     <div className="question-btn-holder">
-                        {/* {parseInt(questionNumber)===questions.length ? '/score' : `/e/${mode}/${parseInt(questionNumber)+1}`} */}
                         <Button className='question-btn' variant="contained"
                             onClick={() => {
                                 if(parseInt(questionNumber)===questions.length && mode==='study'){
                                     handleClickOpen()
                                 }
                                 else if(parseInt(questionNumber)===questions.length && mode==='exam'){
-                                    getReadyForScore()
+                                    history.push(`/score/${examNumber}`)
                                 }
                                 else{
                                     history.push(`/e/${examNumber}/${mode}/${parseInt(questionNumber)+1}`)

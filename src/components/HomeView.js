@@ -8,25 +8,29 @@ import logo from '../logo.svg';
 import './HomeView.css'
 import ExamSelector from './ExamSelector'
 
+function shuffle(array) {
+    return array.sort(() => Math.random() - 0.5)
+}
+
 const HomeView = () => {
     let history = useHistory();
     const dispatch = useDispatch()
-    const { setupQuestion, shuffleQuestions } = bindActionCreators(questionActionCreators, dispatch)
+    const { setupQuestion } = bindActionCreators(questionActionCreators, dispatch)
     const { setupOption } = bindActionCreators(optionActionCreators, dispatch)
     const { setupFeedback } = bindActionCreators(feedbackActionCreators, dispatch)
     const { setupSelection } = bindActionCreators(selectionActionCreators, dispatch)
 
     function initializeExam(mode){
       if(selectedExam !== -1){
-        let questions = []
+        var questions = []
         questions = getQuestions(selectedExam)
-        setupQuestion(questions)
-
-        let options = []
+        
+        var options = []
         options = getOptions(selectedExam)
         setupOption(options)
 
         if(mode === 'study'){
+            setupQuestion(questions)
             let feedbackObjArray = []
             for(let optionObj of options){
                 let feedbackArray = []
@@ -47,7 +51,10 @@ const HomeView = () => {
         }
 
         else if(mode === 'exam'){
-            questions = shuffleQuestions()
+            questions = shuffle(questions)
+            setupQuestion(questions)
+            
+
             let selectionObjArray = []
             for(let question of questions){
                 let newSelectionObj = {
@@ -87,8 +94,9 @@ const HomeView = () => {
                         <Button onClick={() => initializeExam('study')} className="mode-select-btn" variant="contained" size="large" color="success">Study Mode</Button>
                     </div>
                     <div className="btn-holder">
-                        <Button disabled
-                        // onClick={() => initializeExam('exam')} 
+                        <Button 
+                        // disabled
+                        onClick={() => initializeExam('exam')} 
                         className="mode-select-btn" variant="contained" size="large">Exam Mode</Button>
                     </div>
                 </div>

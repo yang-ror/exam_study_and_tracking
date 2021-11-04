@@ -1,0 +1,9 @@
+.score-holder{
+    font-size: 1.5em;
+    position: absolute;
+    top: 60px;
+}
+
+.current-progress{
+    top: 180px;
+}

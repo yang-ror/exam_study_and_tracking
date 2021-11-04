@@ -6,11 +6,3 @@ export const setupQuestion = (questions) => {
         })
     }
 }
-
-export const shuffleQuestions = () => {
-    return (dispatch) => {
-        dispatch({
-            type: 'shuffleQuestions'
-        })
-    }
-}

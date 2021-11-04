@@ -38,3 +38,16 @@ export const getExams = () => {
     }
     return exams
 }
+
+export const getExamResult = (examId, selection) =>{
+    var score = 0
+    for(let s of selection){
+        const ansKey = getAnswerKeys(examId, s.questionId)
+        for(let opt of ansKey){
+            if(opt.correct && s.selectionArray[0] === opt.optionId){
+                score++
+            }
+        }
+    }
+    return score
+}
