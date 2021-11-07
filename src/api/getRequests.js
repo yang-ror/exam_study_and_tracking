@@ -20,10 +20,34 @@ export const getQuestions = examId => {
     }
 }
 
+export const getQuestion = (examId, questionId) => {
+    for(let exam of fakeDatabase.LawExam){
+        if(exam.examId === examId){
+            for(let question of exam.question){
+                if(question.questionId === questionId){
+                    return question
+                }
+            }
+        }
+    }
+}
+
 export const getOptions = examId => {
     for(let exam of fakeDatabase.LawExam){
         if(exam.examId === examId){
             return exam.answer
+        }
+    }
+}
+
+export const getOption = (examId, questionId ) => {
+    for(let exam of fakeDatabase.LawExam){
+        if(exam.examId === examId){
+            for(let ans of exam.answer){
+                if(ans.questionId === questionId){
+                    return ans
+                }
+            }
         }
     }
 }

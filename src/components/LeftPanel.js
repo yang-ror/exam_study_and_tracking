@@ -11,17 +11,9 @@ import AutoSizer from 'react-virtualized-auto-sizer'
 import './LeftPanel.css'
 
 function renderRow({data, index, style }) {
-    function goTo(){
-        if(!data.inScore){
-            data.history.push(`/e/${data.examNumber}/${data.mode}/${index+1}`)
-        }
-        else{
-            data.history.push(`/e/${data.examNumber}/study/${index+1}`)
-        }
-    }
-
     var savedAnsLabel = ''
-
+    var inReview = data.mode === 'review'
+    var correctAns = null
     if(data.mode === 'study'){
         for(let feedback of data.saveAns){
             if(feedback.questionId === index){
@@ -34,11 +26,33 @@ function renderRow({data, index, style }) {
             }
         }
     }
-    else if(data.mode === 'exam'){
+    else{
         for(let selection of data.saveAns){
-            if(selection.questionId === data.questions[index].questionId){
+            if(selection.questionId === data.questions[index]){
                 if(selection.selectionArray.length > 0){
                     savedAnsLabel = ' - ' + String.fromCharCode(selection.selectionArray[0] + 65)
+                }
+            }
+        }
+        if(data.mode !== 'exam'){
+            // activate review mode in score view.
+            inReview = true
+            
+        }
+        if(inReview){
+            for(let selection of data.saveAns){
+                if(selection.questionId === data.questions[index]){
+                    const ansKey = getAnswerKeys(parseInt(data.examNumber), data.questions[index])
+                    for(let i = 0; i < ansKey.length; i++){
+                        if(ansKey[i].correct){
+                            if(selection.selectionArray[0] === ansKey[i].optionId){
+                                correctAns = true
+                            }
+                            else{
+                                correctAns = false
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -46,8 +60,10 @@ function renderRow({data, index, style }) {
     
     return (
         <ListItem style={style} key={index} component="div" disablePadding>
-            <ListItemButton onClick={goTo}>
-                <div className={`answered-questions ${parseInt(data.questionNumber)===index+1 && 'current-question'}`}>
+            <ListItemButton onClick={() => data.goTo(index)}>
+                <div className={`answered-questions 
+                ${inReview ? correctAns ? 'correct-ans-idx' : 'incorrect-ans-idx' : ''}
+                ${parseInt(data.questionNumber)===index+1 && 'current-question'}`}>
                     <ListItemText primary={`# ${index+1} ${savedAnsLabel}`} />
                 </div>
             </ListItemButton>
@@ -67,6 +83,16 @@ const LeftPanel = () => {
         history.push('/')
     }
 
+    function goTo(index){
+        var inScore = location.pathname.includes('/score')
+        if(!inScore){
+            history.push(`/e/${examNumber}/${mode}/${index+1}`)
+        }
+        else{
+            history.push(`/e/${examNumber}/review/${index+1}`)
+        }
+    }
+
     const { mode, examNumber, questionNumber } = useParams()
     const questions = useSelector((state) => state.question)
     const feedbacks = useSelector((state) => state.feedback)
@@ -77,12 +103,12 @@ const LeftPanel = () => {
     if(mode === 'study'){
         saveAns = feedbacks
     }
-    else if(mode === 'exam'){
+    else{
         saveAns = selection
     }
     
     const location = useLocation()
-    var inScore = location.pathname === '/score'
+    
     var history = useHistory()
 
     if(questions.length === 0){
@@ -104,9 +130,8 @@ const LeftPanel = () => {
                         itemData={{ 
                             mode: mode,
                             questions: questions,
-                            inScore: inScore, 
-                            history: history, 
-                            openDialogBox: handleClickOpen, 
+                            openDialogBox: handleClickOpen,
+                            goTo:goTo,
                             examNumber:examNumber, 
                             questionNumber:questionNumber, 
                             saveAns:saveAns}}

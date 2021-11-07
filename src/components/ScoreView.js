@@ -12,6 +12,7 @@ import './ScoreView.css'
 
 const ScoreView = () => {
     const [openDialogBox, setOpenDialogBox] = useState(false)
+
     const handleClickOpen = () => {
         setOpenDialogBox(true)
     }
@@ -21,18 +22,18 @@ const ScoreView = () => {
     const handleConfirm = () => {
         history.push('/')
     }
-    let history = useHistory()
 
     function goToReview(){
-
-        console.log("begin review")
+        history.push(`/e/${examNumber}/review/1`)
     }
+
+    let history = useHistory()
 
     const { examNumber } = useParams()
     const selection = useSelector((state) => state.selection)
     const questions = useSelector((state) => state.question)
 
-    const result = getExamResult(parseInt(examNumber), selection)
+    const result = getExamResult(parseInt(examNumber), selection) 
 
     return (
         <div className="main-container">

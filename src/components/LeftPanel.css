@@ -16,6 +16,14 @@
     color: rgb(255, 0, 128);
 }
 
+.incorrect-ans-idx{
+    color: rgb(255, 0, 0);
+}
+
+.correct-ans-idx{
+    color: rgb(0, 255, 128);
+}
+
 .panel ::-webkit-scrollbar {
     width: 10px;
 }
