@@ -4,7 +4,7 @@ import InputLabel from '@mui/material/InputLabel';
 import MenuItem from '@mui/material/MenuItem';
 import FormControl from '@mui/material/FormControl';
 import Select from '@mui/material/Select';
-import { getExams } from '../api/getRequests';
+// import { getExams } from '../api/getRequests';
 
 const MenuProps = {
     PaperProps: {
@@ -14,14 +14,13 @@ const MenuProps = {
     }
 }
 
-const ExamSelector = ({ setSelectedExam }) => {
+const ExamSelector = ({ exams, setSelectedExam }) => {
     const [exam, setExam] = React.useState('')
-
-    const exams = getExams()
+    // const [exams, setExams] = React.useState('')
 
     var elements = []
     for(let exam of exams){
-        elements.push(<MenuItem key={exam.examId} value={exam.examId}>{exam.examName}</MenuItem>)
+        elements.push(<MenuItem key={exam.id} value={exam.id}>{exam.exam_name}</MenuItem>)
     }
 
     const handleChange = (event) => {

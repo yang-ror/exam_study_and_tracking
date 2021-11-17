@@ -2,7 +2,6 @@ import * as React from 'react'
 import { useDispatch } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { questionActionCreators, feedbackActionCreators, selectionActionCreators } from '../state/index'
-import { getQuestions, getOptions } from '../api/getRequests'
 import { useHistory } from 'react-router-dom'
 import Button from '@mui/material/Button'
 import Snackbar from '@mui/material/Snackbar'
@@ -38,26 +37,29 @@ const HomeView = () => {
     const { setupFeedback } = bindActionCreators(feedbackActionCreators, dispatch)
     const { setupSelection } = bindActionCreators(selectionActionCreators, dispatch)
 
-    function initializeExam(mode){
+    async function initializeExam(mode){
         if(selectedExam !== -1){
             var questions = []
-            var questionsObjs = getQuestions(selectedExam)
-            for(let queObj of questionsObjs){
-                questions.push(queObj.questionId)
-            }
-
-            const options = getOptions(selectedExam)
+            const resOfQuestions = await fetch('questions/' + selectedExam)
+            const questionObjs = await resOfQuestions.json()
             let feedbackObjArray = []
-            for(let optionObj of options){
-                let feedbackArray = []
-                for(let option of optionObj.options){
-                    feedbackArray.push({
-                        optionId: option.optionId,
-                        feedback: false
-                    })
+
+            const resOfOptIds = await fetch('alloptionids/' + selectedExam)
+            const optionObjs = await resOfOptIds.json()
+            let feedbackArray = []
+
+            for(let question of questionObjs){
+                questions.push(question.id)
+                for(let option of optionObjs){
+                    if(option.question_id === question.id){
+                        feedbackArray.push({
+                            optionId: option.id,
+                            feedback: false
+                        })
+                    }
                 }
                 let newFeedbackArray = {
-                    questionId: optionObj.questionId,
+                    questionId: question.id,
                     feedbackArray: feedbackArray
                 }
                 feedbackObjArray.push(newFeedbackArray)
@@ -72,7 +74,6 @@ const HomeView = () => {
             else if(mode === 'exam'){
                 questions = shuffle(questions)
                 setupQuestion(questions)
-                
                 let selectionObjArray = []
                 for(let questionId of questions){
                     let newSelectionObj = {
@@ -84,7 +85,6 @@ const HomeView = () => {
                 setupSelection(selectionObjArray)
                 history.push(`/e/${selectedExam}/exam/1`)
             }
-
             else{
                 history.push('/')
             }
@@ -99,6 +99,17 @@ const HomeView = () => {
         selectedExam = num
     }
 
+    const [exams, setExams] = React.useState([])
+
+    React.useEffect(() => {
+        const getExams = async () => {
+            const res = await fetch('/exams')
+            var json = await res.json()
+            setExams(json)
+        }
+        getExams()
+    }, [])
+
     return (
         <div className="main-container">
             <Snackbar anchorOrigin={{ vertical, horizontal }} open={open} autoHideDuration={6000} onClose={handleClose} key={vertical + horizontal}>
@@ -109,7 +120,7 @@ const HomeView = () => {
             <div className="view-container center-self flex-center-content-x">
                 <div className="logo-holder"><img src={logo} className="App-logo" alt="logo" /></div>
                 <div className="exam-selector">
-                    <ExamSelector setSelectedExam={setSelectedExam} />
+                    <ExamSelector exams={exams} setSelectedExam={setSelectedExam} />
                 </div>
                 <div className="btn-holders">
                     <div className="btn-holder">

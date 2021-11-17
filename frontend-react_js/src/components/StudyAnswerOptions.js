@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { feedbackActionCreators } from "../state/index"
-import { getAnswerKeys } from '../api/getRequests'
-import { useParams } from "react-router-dom"
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import Divider from '@mui/material/Divider'
@@ -29,7 +27,7 @@ function OptionElement({questionId, optionId, letter, optionText, correct}){
         setFeedback({
             questionId: questionId,
             optionId: optionId
-        },[])
+        })
     }
 
     useEffect(() => {
@@ -37,7 +35,7 @@ function OptionElement({questionId, optionId, letter, optionText, correct}){
             setFeedbackState(feedback)
         }
         changeFeedbackState()
-    })
+    },[])
 
     return <ListItem className="options" button onClick={() => setFeedbackStateAndStore(questionId, optionId)}>
         <div><label className={`option-letter ${feedbackState ? correct ? 'correct-ans' : 'incorrect-ans' : ''}`}>{letter}.</label></div>
@@ -47,39 +45,47 @@ function OptionElement({questionId, optionId, letter, optionText, correct}){
 
 function OptionElements({questionId, options , answerKeys}){
     var elements = []
-    
-    let i = 0;
+    let i = 0
     for(let option of options){
         elements.push(
             <OptionElement 
                 questionId={questionId}
-                optionId={option.optionId}
-                key={option.optionId} 
-                letter={String.fromCharCode(option.optionId+65)} 
+                optionId={option.id}
+                key={option.id} 
+                letter={String.fromCharCode(i+65)} 
                 optionText={option.text} 
-                correct={answerKeys.find(answerKey => answerKey.optionId === option.optionId).correct}
+                correct={answerKeys.find(answerKey => answerKey.id === option.id).correct}
             />
         )
         if(i++ < options.length-1) 
-            elements.push(<Divider key={option.optionId + options.length} />)
+            elements.push(<Divider key={option.id + options.length} />)
     }
     return elements
 }
 
 const StudyAnswerOptions = ({ optionObj }) => {
-    const options = optionObj.options
-    const { examNumber } = useParams()
-    const answerKeys  = getAnswerKeys(parseInt(examNumber), optionObj.questionId)
-
+    const [optionObject, setOptionObject] = useState(null)
+    useEffect(() => {
+        const getAnswerKeys = async () => {
+            const res = await fetch('/answerkeys/' + optionObj.questionId)
+            var json = await res.json()
+            var newOptionObj = {...optionObj, answerKeys: json}
+            setOptionObject(newOptionObj)
+        }
+        getAnswerKeys()
+    },[optionObj])
+    
     return(
         <div className="options-holder">
+            {optionObject !== null &&
             <List sx={style} component="nav" aria-label="mailbox folders">
                 <OptionElements 
-                    questionId={optionObj.questionId} 
-                    options={options} 
-                    answerKeys={answerKeys} 
+                    questionId={optionObject.questionId} 
+                    options={optionObject.options} 
+                    answerKeys={optionObject.answerKeys}
                 />
             </List>
+            }
         </div>
     )
 }

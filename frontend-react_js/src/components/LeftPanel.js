@@ -1,7 +1,6 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSelector } from 'react-redux'
 import { useHistory, useParams, useLocation } from 'react-router-dom'
-import { getAnswerKeys } from '../api/getRequests';
 import DialogBox from './DialogBox'
 import ListItem from '@mui/material/ListItem'
 import ListItemButton from '@mui/material/ListItemButton'
@@ -15,22 +14,23 @@ function renderRow({data, index, style }) {
     var inReview = data.mode === 'review'
     var correctAns = null
     if(data.mode === 'study'){
-        for(let feedback of data.saveAns){
-            if(feedback.questionId === index){
-                const ansKey = getAnswerKeys(parseInt(data.examNumber), feedback.questionId)
-                for(let i = 0; i < ansKey.length; i++){
-                    if(ansKey[i].correct && feedback.feedbackArray[i].feedback){
-                        savedAnsLabel = ' - ' + String.fromCharCode(i+65)
-                    }
-                }
-            }
+        if(data.answerKeys.length > 0){
+            // var feedbackArray = data.saveAns.find(fb => fb.questionId === data.questions[index]).feedbackArray
+            // for(let fb of feedbackArray){
+            //     if(fb.feedback){
+            //         var answerKey = data.answerKeys.find(ak => ak.id === fb.optionId)
+            //         if(answerKey.correct){
+            //             savedAnsLabel = ' - ' + String.fromCharCode(fb.optionId % 4 + 65)
+            //         }
+            //     }
+            // }
         }
     }
     else{
         for(let selection of data.saveAns){
             if(selection.questionId === data.questions[index]){
                 if(selection.selectionArray.length > 0){
-                    savedAnsLabel = ' - ' + String.fromCharCode(selection.selectionArray[0] + 65)
+                    savedAnsLabel = ' - ' + String.fromCharCode(selection.selectionArray[0] % 4 + 65)
                 }
             }
         }
@@ -40,25 +40,18 @@ function renderRow({data, index, style }) {
             
         }
         if(inReview){
-            for(let selection of data.saveAns){
-                if(selection.questionId === data.questions[index]){
-                    const ansKey = getAnswerKeys(parseInt(data.examNumber), data.questions[index])
-                    for(let i = 0; i < ansKey.length; i++){
-                        if(ansKey[i].correct){
-                            if(selection.selectionArray[0] === ansKey[i].optionId){
-                                correctAns = true
-                            }
-                            else{
-                                correctAns = false
-                            }
-                        }
+            if(data.answerKeys.length > 0){
+                for(let selection of data.saveAns){
+                    if(selection.questionId === data.questions[index]){
+                        var answerKey = data.answerKeys.find(ak => ak.id === selection.selectionArray[0])
+                        correctAns = answerKey.correct
                     }
                 }
             }
         }
     }
     
-    return (
+    return(
         <ListItem style={style} key={index} component="div" disablePadding>
             <ListItemButton onClick={() => data.goTo(index)}>
                 <div className={`answered-questions 
@@ -113,8 +106,18 @@ const LeftPanel = () => {
 
     if(questions.length === 0){
         history.push('/')
-        return false
+        // return false
     }
+
+    const [answerKeys, setAnswerKeys] = useState([])
+    useEffect(() => {
+        const getAnswerKeys = async () => {
+            const res = await fetch('/allanswerkeys/' + examNumber)
+            var json = await res.json()
+            setAnswerKeys(json)
+        }
+        getAnswerKeys()
+    },[])
 
     return (
         <div className="panel">
@@ -130,6 +133,7 @@ const LeftPanel = () => {
                         itemData={{ 
                             mode: mode,
                             questions: questions,
+                            answerKeys: answerKeys,
                             openDialogBox: handleClickOpen,
                             goTo:goTo,
                             examNumber:examNumber, 

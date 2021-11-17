@@ -4,7 +4,7 @@ const routes = app => {
     app.route('/questions/:examId')
         .get(getQuestions)
     app.route('/question/:questonId')
-    .get(getQuestionsById)
+        .get(getQuestionsById)
 }
 
 export default routes

@@ -18,7 +18,7 @@ app.use(express.urlencoded({ extended: true }))
 app.use(express.static('public'));
 
 app.get('/', (req, res) => 
-    res.json('esat')
+    res.sendFile(path.join(__dirname + '../public/index.html'))
 )
 
 examRoute(app)

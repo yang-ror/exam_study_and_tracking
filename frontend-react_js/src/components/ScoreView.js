@@ -2,7 +2,6 @@ import * as React from 'react';
 import { useState } from 'react';
 import { useSelector } from 'react-redux'
 import { useHistory, useParams } from 'react-router-dom'
-import { getExamResult } from '../api/getRequests'
 import LinearProgress from '@mui/material/LinearProgress'
 import Box from '@mui/material/Box'
 import Button from '@mui/material/Button'
@@ -33,7 +32,31 @@ const ScoreView = () => {
     const selection = useSelector((state) => state.selection)
     const questions = useSelector((state) => state.question)
 
-    const result = getExamResult(parseInt(examNumber), selection) 
+    var selectionToSubmid = []
+    for(let s of selection){
+        selectionToSubmid.push(s.selectionArray[0])
+    }
+
+    var submition = {
+        examId: examNumber,
+        selections: selectionToSubmid
+    }
+
+    const [score, setScore] = React.useState(0)
+    React.useEffect(() => {
+        const getScore = async () => {
+            const res = await fetch('/result/', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(submition)
+            })
+            var json = await res.json()
+            setScore(json)
+        }
+        getScore()
+    },[])
 
     return (
         <div className="main-container">
@@ -43,11 +66,11 @@ const ScoreView = () => {
                 </div>
             <div className="view-container center-self flex-center-content-x">
                 <div className="score-holder">
-                    <h1>{result}/{questions.length}</h1>
+                    <h1>{score}/{questions.length}</h1>
                 </div>
 
                 <Box className="current-progress center-self-x" sx={{ width: '90%' }}>
-                    <LinearProgress variant="determinate" value={questions.length/100*result} />
+                    <LinearProgress variant="determinate" value={score / questions.length * 100} />
                 </Box>
                 
                 <div className="question-btns-holder">

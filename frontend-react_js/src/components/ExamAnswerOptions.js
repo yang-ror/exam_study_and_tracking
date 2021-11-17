@@ -1,35 +1,31 @@
 import { useState, useEffect } from 'react';
-
 import { useSelector, useDispatch } from 'react-redux'
 import { bindActionCreators } from 'redux'
 import { selectionActionCreators } from "../state/index"
-
 import RadioGroup from '@mui/material/RadioGroup'
 import Radio from '@mui/material/Radio'
 import FormControl from '@mui/material/FormControl';
-
 import FormControlLabel from '@mui/material/FormControlLabel'
-
 
 function RadioBtn({ options }){
     var elements = []
+    var i = 0
     for(let option of options){
         elements.push(
-            <div key={option.optionId} className="options flex-center-content-y">
+            <div key={option.id} className="options flex-center-content-y">
                 <FormControlLabel 
-                    value={option.optionId} 
+                    value={option.id} 
                     control={<Radio className= "radio-btn"/>} 
-                    label={`${String.fromCharCode(option.optionId+65)}. ${option.text}`} 
+                    label={`${String.fromCharCode(i+65)}. ${option.text}`}
                 />
             </div>
         )
+        i++
     }
     return elements
 }
 
-function OptionGroup({ optionObj, chooseMoreThanOne }){
-    const questionId = optionObj.questionId
-
+function OptionGroup({ questionId, options, chooseMoreThanOne }){
     const selectionObjArray =  useSelector(state => state.selection)
     const selectionObj = selectionObjArray.find(selectionObj => selectionObj.questionId === questionId)
 
@@ -43,7 +39,7 @@ function OptionGroup({ optionObj, chooseMoreThanOne }){
     const [value, setValue] = useState(defaultValue);
 
     const handleChange = event => {
-        setValue(event.target.value);
+        setValue(event.target.value)
         saveAns({
             questionId: questionId,
             selectedOption: [parseInt(event.target.value)]
@@ -55,7 +51,7 @@ function OptionGroup({ optionObj, chooseMoreThanOne }){
             setValue(defaultValue)
         }
         changeSelectionState()
-    })
+    },[questionId])
 
     if(!chooseMoreThanOne){
         return <FormControl component="fieldset">
@@ -65,16 +61,16 @@ function OptionGroup({ optionObj, chooseMoreThanOne }){
                 value={value}
                 onChange={handleChange}
             >
-                <RadioBtn options={optionObj.options} />
+                <RadioBtn options={options} />
             </RadioGroup>
         </FormControl>
     }
 }
 
-const ExamAnswerOptions = ({ optionObj, chooseMoreThanOne }) => {
+const ExamAnswerOptions = ({ optionObj }) => {
     return (
         <div className="options-holder">
-            <OptionGroup optionObj={optionObj} chooseMoreThanOne={chooseMoreThanOne} />
+            <OptionGroup questionId={optionObj.questionId} options={optionObj.options} chooseMoreThanOne={optionObj.chooseMoreThanOne} />
         </div>
     )
 }

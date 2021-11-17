@@ -1,11 +1,8 @@
-import React from 'react';
-import { useState } from 'react';
+import React from 'react'
 import { bindActionCreators } from 'redux'
 import { useSelector, useDispatch } from 'react-redux'
 import { feedbackActionCreators } from "../state/index"
-import { getQuestion, getOption } from '../api/getRequests'
 import { useHistory, useParams } from 'react-router-dom'
-import { getAnswerKeys } from '../api/getRequests'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
 import TranslateIcon from '@mui/icons-material/Translate'
@@ -23,12 +20,31 @@ import ExamAnswerOptions from './ExamAnswerOptions'
 import Timer from './Timer'
 import './ExamView.css'
 
-function AnswerOptions({ mode, examId, questionId, chooseMoreThanOne }){
-    var optionObj = getOption(examId, questionId)
-    if(mode === 'study' || mode === 'review')
-        return <StudyAnswerOptions optionObj={optionObj} />
-    if(mode === 'exam')
-        return <ExamAnswerOptions optionObj={optionObj} chooseMoreThanOne={chooseMoreThanOne} />
+function AnswerOptions({ mode, questionId, chooseMoreThanOne }){
+    const [optionObject, setOptionObject] = React.useState(null)
+    React.useEffect(() => {
+        const getOptions = async () => {
+            const res = await fetch('/options/' + questionId)
+            var options = await res.json()
+            var newOptionObj = {
+                questionId: questionId,
+                options: options,
+                chooseMoreThanOne: chooseMoreThanOne
+            }
+            setOptionObject(newOptionObj)
+        }
+        getOptions()
+    },[questionId])
+
+    if(optionObject !== null){
+        if(mode === 'study' || mode === 'review')
+            return <StudyAnswerOptions optionObj={optionObject} />
+        if(mode === 'exam')
+            return <ExamAnswerOptions optionObj={optionObject} />
+    }
+    else{
+        return <label className="center-self">loading...</label>
+    }
 }
 
 function PaperComponent(props) {
@@ -43,11 +59,34 @@ function PaperComponent(props) {
 }
 
 const ExamView = () => {
+    let history = useHistory()
+    const questions = useSelector((state) => state.question)
+    const { mode, examNumber, questionNumber } = useParams()
+    const [question, setQuestion] = React.useState(null)
+    React.useEffect(() => {
+        const getQuestion = async () => {
+            const res = await fetch('/question/' + questions[questionNumber-1])
+            var json = await res.json()
+            setQuestion(json)
+        }
+        getQuestion()
+    },[questionNumber])
+
+    const [examName, setExamName] = React.useState('')
+    React.useEffect(() => {
+        const getQuestion = async () => {
+            const res = await fetch('/exam/' + examNumber)
+            var json = await res.json()
+            setExamName(json.exam_name)
+        }
+        getQuestion()
+    },[])
+
     const dispatch = useDispatch()
     const selection = useSelector((state) => state.selection)
     const { setFeedback } = bindActionCreators(feedbackActionCreators, dispatch)
 
-    const [openDialogBox, setOpenDialogBox] = useState(false);
+    const [openDialogBox, setOpenDialogBox] = React.useState(false);
     const handleClickOpen = () => {
         setOpenDialogBox(true)
     }
@@ -68,35 +107,29 @@ const ExamView = () => {
       setOpen(false)
     }
 
-    const { mode, examNumber, questionNumber } = useParams()
-    let history = useHistory()
-    const questions = useSelector((state) => state.question)
-
     if(questions.length === 0){
         history.push('/')
-        return false
     }
-
-    const question = getQuestion(parseInt(examNumber), questions[questionNumber-1])
 
     function showTranslation(){
     }
 
-    function setupReview(){
-        
+    async function setupReview(){
         for(let s of selection){
             setFeedback({
                 questionId: s.questionId,
                 optionId: s.selectionArray[0]
             },[])
-            const answerKeys  = getAnswerKeys(parseInt(examNumber), s.questionId)
-            for(let ansKey of answerKeys){
-                if(ansKey.correct){
-                    setFeedback({
-                        questionId: s.questionId,
-                        optionId: ansKey.optionId
-                    },[])
-                }
+        }
+
+        const res = await fetch('/allanswerkeys/' + examNumber)
+        const answerKeys = await res.json()
+        for(let ak of answerKeys){
+            if(ak.correct){
+                setFeedback({
+                    questionId: ak.question_id,
+                    optionId: ak.id
+                },[])
             }
         }
     }
@@ -104,22 +137,24 @@ const ExamView = () => {
     return (
         <div className="main-container">
             <DialogBox open={openDialogBox} handleClose={handleClose} handleConfirm={handleConfirm} />
-            <Dialog
-                open={open}
-                maxWidth={'md'}
-                fullWidth={false}
-                onClose={handleClose}
-                PaperComponent={PaperComponent}
-                aria-labelledby="draggable-dialog-title"
-            >
-                <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title"></DialogTitle>
-                <DialogContent>
-                    {question.imageName !== '' && <img src={process.env.PUBLIC_URL + '/images/' + question.imageName + '.png'} alt='question img' /> }
-                </DialogContent>
-                <DialogActions>
-                <Button onClick={handleImageClose}>Close</Button>
-                </DialogActions>
-            </Dialog>
+            {question!==null && question.image_name !== '' &&
+                <Dialog
+                    open={open}
+                    maxWidth={'md'}
+                    fullWidth={false}
+                    onClose={handleClose}
+                    PaperComponent={PaperComponent}
+                    aria-labelledby="draggable-dialog-title"
+                >
+                    <DialogTitle style={{ cursor: 'move' }} id="draggable-dialog-title"></DialogTitle>
+                    <DialogContent>
+                        {<img src={process.env.PUBLIC_URL + '/images/' + question.image_name + '.png'} alt='question img' /> }
+                    </DialogContent>
+                    <DialogActions>
+                    <Button onClick={handleImageClose}>Close</Button>
+                    </DialogActions>
+                </Dialog>
+            }
             <Button onClick={handleClickOpen} size="large" color="secondary" endIcon={<ExitToAppIcon />}>End Exam</Button>
             <div className="left-panel">
                 <LeftPanel />
@@ -127,6 +162,7 @@ const ExamView = () => {
             <div className="view-container center-self">
                 <div className="top-indicator">
                     <h2 className="number">{questionNumber}/{questions.length}</h2>
+                    <h2 className="exam-name center-self-x">{examName}</h2>
                     <div className="tools">
                         {
                             mode==='exam' ? <Timer /> :
@@ -136,21 +172,26 @@ const ExamView = () => {
                         }
                     </div>
                 </div>
-
-                <div className="question-text-holder">
-                    <p>{question.text}</p>
-                    {question.imageName !== '' && <Button onClick={handleImageClickOpen} variant="outlined" color="secondary" size="small">Show Image</Button>}
-                </div>
-
-                <AnswerOptions mode={mode} examId={parseInt(examNumber)} questionId={question.questionId} chooseMoreThanOne={question.chooseMoreThanOne} />
-
+                {question!==null && 
+                <>
+                    <div className="question-text-holder">
+                        <p>{question.text}</p>
+                        {question.image_name !== '' && <Button onClick={handleImageClickOpen} variant="outlined" color="secondary" size="small">Show Image</Button>}
+                    </div>
+                    <AnswerOptions mode={mode} examId={parseInt(examNumber)} questionId={question.id} chooseMoreThanOne={question.choose_more_than_one} />
+                </>
+                }
                 <div className="question-btns-holder">
                     <div className="question-btn-holder">
                         <Button className='question-btn' variant="contained" color="success"
-                            onClick={() => 
-                                parseInt(questionNumber)===1 ? handleClickOpen() : 
-                                history.push(`/e/${examNumber}/${mode}/${parseInt(questionNumber)-1}`)
-                            } 
+                            onClick={() => {
+                                if(parseInt(questionNumber)===1){
+                                    handleClickOpen()
+                                } 
+                                else {
+                                    history.push(`/e/${examNumber}/${mode}/${parseInt(questionNumber)-1}`)
+                                }
+                            }}
                         >
                             Back
                         </Button>
