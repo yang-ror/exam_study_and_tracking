@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { selectionActionCreators } from "../state/index"
+import { selectionActionCreators, leftBarActionCreators } from "../state/index"
 import RadioGroup from '@mui/material/RadioGroup'
 import Radio from '@mui/material/Radio'
 import FormControl from '@mui/material/FormControl';
@@ -31,6 +31,7 @@ function OptionGroup({ questionId, options, chooseMoreThanOne }){
 
     const dispatch = useDispatch()
     const { saveAns } = bindActionCreators(selectionActionCreators, dispatch)
+    const { updateList } = bindActionCreators(leftBarActionCreators, dispatch)
 
     var defaultValue = ''
     if(selectionObj.selectionArray.length > 0)
@@ -43,6 +44,11 @@ function OptionGroup({ questionId, options, chooseMoreThanOne }){
         saveAns({
             questionId: questionId,
             selectedOption: [parseInt(event.target.value)]
+        })
+        updateList({
+            questionId: questionId,
+            savedAns: String.fromCharCode(parseInt(event.target.value) % 4 + 65),
+            status: 'answered'
         })
     }
 

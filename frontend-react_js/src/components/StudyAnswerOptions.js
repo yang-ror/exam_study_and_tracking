@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useSelector, useDispatch } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { feedbackActionCreators } from "../state/index"
+import { feedbackActionCreators, leftBarActionCreators } from "../state/index"
 import List from '@mui/material/List'
 import ListItem from '@mui/material/ListItem'
 import Divider from '@mui/material/Divider'
@@ -12,7 +12,7 @@ const style = {
     borderRadius: 3
 }
 
-function OptionElement({questionId, optionId, letter, optionText, correct}){
+function OptionElement({ questionId, optionId, letter, optionText, correct }){
     const feedbackObjArray = useSelector((state) => state.feedback)
     const feedbackObjByQuestionId = feedbackObjArray.find(feedbackObj => feedbackObj.questionId === questionId)
     const feedbackObj = feedbackObjByQuestionId.feedbackArray.find(feedbackObj => feedbackObj.optionId === optionId)
@@ -21,6 +21,7 @@ function OptionElement({questionId, optionId, letter, optionText, correct}){
     const [feedbackState, setFeedbackState] = useState(feedback);
     const dispatch = useDispatch()
     const { setFeedback } = bindActionCreators(feedbackActionCreators, dispatch)
+    const { updateList } = bindActionCreators(leftBarActionCreators, dispatch)
     
     function setFeedbackStateAndStore(questionId, optionId){
         setFeedbackState(true)
@@ -28,6 +29,13 @@ function OptionElement({questionId, optionId, letter, optionText, correct}){
             questionId: questionId,
             optionId: optionId
         })
+        if(correct){
+            updateList({
+                questionId: questionId,
+                savedAns: letter,
+                status: 'answered'
+            })
+        }
     }
 
     useEffect(() => {

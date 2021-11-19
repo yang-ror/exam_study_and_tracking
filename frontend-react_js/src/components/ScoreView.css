@@ -1,9 +1,65 @@
 .score-holder{
-    font-size: 1.5em;
-    position: absolute;
-    top: 60px;
+    margin-top: 50px;
+    font-size: 3em;
+    font-weight: bold;
+    width: 100%;
 }
 
-.current-progress{
-    top: 180px;
+.time-holder{
+    font-size: 1.5em;
+    width: 100%;
+}
+
+.bar-holder{
+    margin-top: 20px;
+    width: 100%;
+}
+
+.history-holder{
+    height: 480px;
+    max-height: 480px;
+    width: 100%;
+    overflow-y: auto;
+}
+
+.history-holder::-webkit-scrollbar {
+    display: none;
+}
+
+.bar{
+    margin-left: 30px;
+    margin-top: 10px;
+    height: 30px;
+    border-radius: 15px;
+    width: calc(100% - 60px);
+    background-color: rgb(200, 200, 200);
+    position: relative;
+}
+
+.this-score-bar{
+    border: 1px solid rgb(0, 128, 200);
+    margin-bottom: 15px;
+}
+
+.bar:hover{
+    filter: brightness(1.1);
+}
+
+.time-label{
+    position: absolute;
+    left: 20px;
+    top: 3px;
+}
+
+.score-label{
+    position: absolute;
+    left: calc(100% - 20px);
+    top: 3px;
+    transform: translate(-100%, 0);
+}
+
+.progress{
+    height: 100%;
+    border-radius: 15px 0 0 15px;
+    background-color: rgb(0, 128, 200);
 }

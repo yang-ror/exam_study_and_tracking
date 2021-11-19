@@ -1,14 +1,20 @@
 import * as React from 'react'
 import { useDispatch } from 'react-redux'
 import { bindActionCreators } from 'redux'
-import { questionActionCreators, feedbackActionCreators, selectionActionCreators } from '../state/index'
+import { 
+    questionActionCreators, 
+    feedbackActionCreators, 
+    selectionActionCreators, 
+    leftBarActionCreators 
+} from '../state/index'
 import { useHistory } from 'react-router-dom'
 import Button from '@mui/material/Button'
 import Snackbar from '@mui/material/Snackbar'
 import MuiAlert from '@mui/material/Alert'
 import logo from '../logo.svg'
-import './HomeView.css'
 import ExamSelector from './ExamSelector'
+import './HomeView.css'
+
 
 function shuffle(array) {
     return array.sort(() => Math.random() - 0.5)
@@ -36,6 +42,18 @@ const HomeView = () => {
     const { setupQuestion } = bindActionCreators(questionActionCreators, dispatch)
     const { setupFeedback } = bindActionCreators(feedbackActionCreators, dispatch)
     const { setupSelection } = bindActionCreators(selectionActionCreators, dispatch)
+    const { setupLeftBarList } = bindActionCreators(leftBarActionCreators, dispatch)
+
+    function setupLeftBar(questions){
+        var leftBarList = questions.map((question) => {
+            return {
+                questionId: question,
+                savedAns: '',
+                status: 'unanswered'
+            }
+        })
+        setupLeftBarList(leftBarList)
+    }
 
     async function initializeExam(mode){
         if(selectedExam !== -1){
@@ -68,12 +86,14 @@ const HomeView = () => {
 
             if(mode === 'study'){
                 setupQuestion(questions)
+                setupLeftBar(questions)
                 history.push(`/e/${selectedExam}/study/1`)
             }
 
             else if(mode === 'exam'){
                 questions = shuffle(questions)
                 setupQuestion(questions)
+                setupLeftBar(questions)
                 let selectionObjArray = []
                 for(let questionId of questions){
                     let newSelectionObj = {
@@ -90,14 +110,15 @@ const HomeView = () => {
             }
         }
         else{
-            setState({ open: true, vertical: 'bottom', horizontal: 'center'})
+            setState({ open: true, vertical: 'bottom', horizontal: 'center' })
         }
     }
     
-    var selectedExam = -1
-    function setSelectedExam(num){
-        selectedExam = num
-    }
+    const [selectedExam, setSelectedExam] = React.useState(-1)
+    // var selectedExam = -1
+    // function setSelectedExam(num){
+    //     selectedExam = num
+    // }
 
     const [exams, setExams] = React.useState([])
 
@@ -112,7 +133,13 @@ const HomeView = () => {
 
     return (
         <div className="main-container">
-            <Snackbar anchorOrigin={{ vertical, horizontal }} open={open} autoHideDuration={6000} onClose={handleClose} key={vertical + horizontal}>
+            <Snackbar 
+                anchorOrigin={{ vertical, horizontal }} 
+                open={open} autoHideDuration={6000} 
+                onClose={handleClose} 
+                key={vertical + horizontal}
+                // onClick={history.push('/score/0')}
+            >
                 <Alert onClose={handleClose} severity="info" sx={{ width: '100%' }}>
                     Select an exam to continue.
                 </Alert>
@@ -132,6 +159,11 @@ const HomeView = () => {
                         className="mode-select-btn" variant="contained" size="large">Exam Mode</Button>
                     </div>
                 </div>
+                {selectedExam !== -1 &&
+                    <div className="history-btn">
+                        <Button onClick={() => history.push(`/score/${selectedExam}`)} size="large" color="secondary">See History</Button>
+                    </div>
+                }
             </div>
         </div>
     )

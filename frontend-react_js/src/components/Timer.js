@@ -1,6 +1,6 @@
 import React from 'react'
 
-const Timer = () => {
+const Timer = ({ setTimeUsed }) => {
     const [time, setTime] = React.useState(0)
     const [seconds, setSeconds] = React.useState('0')
     const [minutes, setMinutes] = React.useState('0')
@@ -19,6 +19,7 @@ const Timer = () => {
             setSeconds(sec < 10 ? '0' + sec : '' + sec)
             setMinutes(min < 10 ? '0' + min : '' + min)
             setHours(hr)
+            setTimeUsed(time)
         }
         setTimer()
     })

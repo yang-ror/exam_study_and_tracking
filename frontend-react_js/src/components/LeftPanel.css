@@ -1,7 +1,6 @@
 .panel{
     width: 100%;
     height: 100%;
-    
 }
 
 .answered-questions{
@@ -9,11 +8,11 @@
 }
 
 .unanswered-questions{
-    color:darkgrey
+    color:rgb(128, 128, 128)
 }
 
 .current-question{
-    color: rgb(255, 0, 128);
+    color: rgb(0, 128, 255);
 }
 
 .incorrect-ans-idx{

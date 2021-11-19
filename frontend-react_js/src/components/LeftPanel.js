@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { useHistory, useParams, useLocation } from 'react-router-dom'
 import DialogBox from './DialogBox'
@@ -9,12 +9,12 @@ import { FixedSizeList } from 'react-window'
 import AutoSizer from 'react-virtualized-auto-sizer'
 import './LeftPanel.css'
 
-function renderRow({data, index, style }) {
-    var savedAnsLabel = ''
-    var inReview = data.mode === 'review'
-    var correctAns = null
-    if(data.mode === 'study'){
-        if(data.answerKeys.length > 0){
+function renderRow({ data, index, style }) {
+    // var inReview = data.mode === 'review'
+    // var correct = null
+
+    // if(data.mode === 'study'){
+        // if(data.answerKeys.length > 0){
             // var feedbackArray = data.saveAns.find(fb => fb.questionId === data.questions[index]).feedbackArray
             // for(let fb of feedbackArray){
             //     if(fb.feedback){
@@ -24,39 +24,58 @@ function renderRow({data, index, style }) {
             //         }
             //     }
             // }
-        }
-    }
-    else{
-        for(let selection of data.saveAns){
-            if(selection.questionId === data.questions[index]){
-                if(selection.selectionArray.length > 0){
-                    savedAnsLabel = ' - ' + String.fromCharCode(selection.selectionArray[0] % 4 + 65)
-                }
-            }
-        }
-        if(data.mode !== 'exam'){
-            // activate review mode in score view.
-            inReview = true
+        // }
+    // }
+    // else{
+        // for(let selection of data.saveAns){
+        //     if(selection.questionId === data.questions[index]){
+        //         if(selection.selectionArray.length > 0){
+        //             savedAnsLabel = ' - ' + String.fromCharCode(selection.selectionArray[0] % 4 + 65)
+        //         }
+        //     }
+        // }
+        // var selection = data.saveAns.find(s => s.questionId === data.questions[index])
+
+        // if(data.mode !== 'exam'){
+        //     // activate review mode in score view.
+        //     inReview = true
             
-        }
-        if(inReview){
-            if(data.answerKeys.length > 0){
-                for(let selection of data.saveAns){
-                    if(selection.questionId === data.questions[index]){
-                        var answerKey = data.answerKeys.find(ak => ak.id === selection.selectionArray[0])
-                        correctAns = answerKey.correct
-                    }
-                }
-            }
-        }
+        // }
+        // if(inReview){
+            // if(data.answerKeys.length > 0){
+            //     var selection = data.saveAns.find(s => s.questionId === data.questions[index])
+            //     var answerKey = data.answerKeys.find(a => a.id === selection.selectionArray[0])
+            //     correctAns = answerKey.correct
+            // }
+    //     }
+    // }
+
+    var savedAnsLabel = ''
+    var classOfLabel = ''
+
+    if(data.leftPanelList[index].savedAns !== ''){
+        savedAnsLabel = ' - ' + data.leftPanelList[index].savedAns
     }
-    
+ 
+    switch(data.leftPanelList[index].status){
+        case "unanswered":
+            classOfLabel = 'unanswered-questions'
+            break
+        case "answered":
+            classOfLabel = 'answered-questions'
+            break
+        case "correct":
+            classOfLabel = 'correct-ans-idx'
+            break
+        case "incorrect":
+            classOfLabel = 'incorrect-ans-idx'
+            break
+    }
+
     return(
         <ListItem style={style} key={index} component="div" disablePadding>
             <ListItemButton onClick={() => data.goTo(index)}>
-                <div className={`answered-questions 
-                ${inReview ? correctAns ? 'correct-ans-idx' : 'incorrect-ans-idx' : ''}
-                ${parseInt(data.questionNumber)===index+1 && 'current-question'}`}>
+                <div className={`${classOfLabel} ${parseInt(data.questionNumber)===index+1 ? 'current-question' : ''}`}>
                     <ListItemText primary={`# ${index+1} ${savedAnsLabel}`} />
                 </div>
             </ListItemButton>
@@ -90,6 +109,7 @@ const LeftPanel = () => {
     const questions = useSelector((state) => state.question)
     const feedbacks = useSelector((state) => state.feedback)
     const selection = useSelector((state) => state.selection)
+    const leftPanelList = useSelector((state) => state.leftBarList)
 
     var saveAns
 
@@ -103,21 +123,6 @@ const LeftPanel = () => {
     const location = useLocation()
     
     var history = useHistory()
-
-    if(questions.length === 0){
-        history.push('/')
-        // return false
-    }
-
-    const [answerKeys, setAnswerKeys] = useState([])
-    useEffect(() => {
-        const getAnswerKeys = async () => {
-            const res = await fetch('/allanswerkeys/' + examNumber)
-            var json = await res.json()
-            setAnswerKeys(json)
-        }
-        getAnswerKeys()
-    },[])
 
     return (
         <div className="panel">
@@ -133,7 +138,7 @@ const LeftPanel = () => {
                         itemData={{ 
                             mode: mode,
                             questions: questions,
-                            answerKeys: answerKeys,
+                            leftPanelList: leftPanelList,
                             openDialogBox: handleClickOpen,
                             goTo:goTo,
                             examNumber:examNumber, 

@@ -1,7 +1,7 @@
 import React from 'react'
 import { bindActionCreators } from 'redux'
 import { useSelector, useDispatch } from 'react-redux'
-import { feedbackActionCreators } from "../state/index"
+import { feedbackActionCreators, leftBarActionCreators } from "../state/index"
 import { useHistory, useParams } from 'react-router-dom'
 import Button from '@mui/material/Button'
 import IconButton from '@mui/material/IconButton'
@@ -59,7 +59,7 @@ function PaperComponent(props) {
 }
 
 const ExamView = () => {
-    let history = useHistory()
+    const history = useHistory()
     const questions = useSelector((state) => state.question)
     const { mode, examNumber, questionNumber } = useParams()
     const [question, setQuestion] = React.useState(null)
@@ -85,6 +85,7 @@ const ExamView = () => {
     const dispatch = useDispatch()
     const selection = useSelector((state) => state.selection)
     const { setFeedback } = bindActionCreators(feedbackActionCreators, dispatch)
+    const { updateStatus } = bindActionCreators(leftBarActionCreators, dispatch)
 
     const [openDialogBox, setOpenDialogBox] = React.useState(false);
     const handleClickOpen = () => {
@@ -130,9 +131,42 @@ const ExamView = () => {
                     questionId: ak.question_id,
                     optionId: ak.id
                 },[])
-            }
+            
+                var selected = selection.find(s => s.questionId === ak.question_id)
+                var correct = selected.selectionArray[0] === ak.id
+                updateStatus({
+                    questionId: ak.question_id,
+                    status: correct ? 'correct' : 'incorrect'
+                })
+            } 
+        }
+        setTimeout(()=> history.push(`/score/${examNumber}`), 0)
+    }
+
+    async function submitExam(){
+        var selectionToSubmid = []
+        for(let s of selection){
+            selectionToSubmid.push(s.selectionArray[0])
+        }
+        var submition = {
+            examId: examNumber,
+            time: timeUsed,
+            selections: selectionToSubmid
+        }
+        const res = await fetch('/submit/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(submition)
+        })
+        if(res.ok){
+            setupReview()
         }
     }
+
+    var timeUsed = 0
+    var setTimeUsed = (t) => timeUsed = t
 
     return (
         <div className="main-container">
@@ -165,7 +199,7 @@ const ExamView = () => {
                     <h2 className="exam-name center-self-x">{examName}</h2>
                     <div className="tools">
                         {
-                            mode==='exam' ? <Timer /> :
+                            mode==='exam' ? <Timer setTimeUsed={setTimeUsed} /> :
                             <IconButton onClick={showTranslation} color="primary" aria-label="show image" component="span">
                                 <TranslateIcon />
                             </IconButton>
@@ -196,6 +230,13 @@ const ExamView = () => {
                             Back
                         </Button>
                     </div>
+                    {mode === 'review' &&
+                        <div className="question-btn-holder">
+                            <Button className='question-btn' variant="contained" color="secondary" onClick={() => history.push(`/score/${examNumber}`)}>
+                                Result
+                            </Button>
+                        </div>
+                    }
                     <div className="question-btn-holder">
                         <Button className='question-btn' variant="contained"
                             onClick={() => {
@@ -203,8 +244,7 @@ const ExamView = () => {
                                     handleClickOpen()
                                 }
                                 else if(parseInt(questionNumber)===questions.length && mode==='exam'){
-                                    setupReview()
-                                    history.push(`/score/${examNumber}`)
+                                    submitExam()
                                 }
                                 else{
                                     history.push(`/e/${examNumber}/${mode}/${parseInt(questionNumber)+1}`)

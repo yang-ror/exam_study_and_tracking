@@ -15,8 +15,10 @@ const reducer = (state = [], action) => {
                 for(let j = 0; j < newState[i].feedbackArray.length; j++){
                     if(newState[i].feedbackArray[j].optionId === payload.optionId){
                         newState[i].feedbackArray[j].feedback = true
+                        break
                     }
                 }
+                break
             }
         }
         return newState

@@ -3,6 +3,7 @@ import db from './config/db'
 import examRoute from './routes/examRoute'
 import questionRoute from './routes/questionRoute'
 import optionRoute from './routes/optionRoute'
+import recordRoute from './routes/recordRoute'
 import dotenv from 'dotenv'
 dotenv.config()
 
@@ -15,7 +16,7 @@ db.authenticate()
 
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
-app.use(express.static('public'));
+app.use(express.static('public'))
 
 app.get('/', (req, res) => 
     res.sendFile(path.join(__dirname + '../public/index.html'))
@@ -24,6 +25,7 @@ app.get('/', (req, res) =>
 examRoute(app)
 questionRoute(app)
 optionRoute(app)
+recordRoute(app)
 
 app.listen(PORT, () =>
 	console.log(`Server is running on port ${PORT}`)
