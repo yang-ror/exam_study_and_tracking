@@ -23,6 +23,10 @@
     color: rgb(0, 255, 128);
 }
 
+.flagged-question{
+    color:rgb(255, 255, 0)
+}
+
 .panel ::-webkit-scrollbar {
     width: 10px;
 }

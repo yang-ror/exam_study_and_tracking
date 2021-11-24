@@ -70,6 +70,8 @@ function renderRow({ data, index, style }) {
         case "incorrect":
             classOfLabel = 'incorrect-ans-idx'
             break
+        case "flagged":
+            classOfLabel = 'flagged-question'
     }
 
     return(

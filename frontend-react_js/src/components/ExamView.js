@@ -14,13 +14,14 @@ import DialogTitle from '@mui/material/DialogTitle'
 import Paper from '@mui/material/Paper'
 import Draggable from 'react-draggable'
 import ExitToAppIcon from '@mui/icons-material/ExitToApp'
+import FlagIcon from '@mui/icons-material/Flag';
 import LeftPanel from './LeftPanel'
 import StudyAnswerOptions from './StudyAnswerOptions'
 import ExamAnswerOptions from './ExamAnswerOptions'
 import Timer from './Timer'
 import './ExamView.css'
 
-function AnswerOptions({ mode, questionId, chooseMoreThanOne }){
+function AnswerOptions({ showTslt, mode, questionId, chooseMoreThanOne }){
     const [optionObject, setOptionObject] = React.useState(null)
     React.useEffect(() => {
         const getOptions = async () => {
@@ -38,7 +39,7 @@ function AnswerOptions({ mode, questionId, chooseMoreThanOne }){
 
     if(optionObject !== null){
         if(mode === 'study' || mode === 'review')
-            return <StudyAnswerOptions optionObj={optionObject} />
+            return <StudyAnswerOptions showTslt={showTslt} optionObj={optionObject} />
         if(mode === 'exam')
             return <ExamAnswerOptions optionObj={optionObject} />
     }
@@ -61,14 +62,21 @@ function PaperComponent(props) {
 const ExamView = () => {
     const history = useHistory()
     const questions = useSelector((state) => state.question)
+    const leftPanelList = useSelector((state) => state.leftBarList)
     const { mode, examNumber, questionNumber } = useParams()
     const [question, setQuestion] = React.useState(null)
+    const [flag, setFlag] = React.useState(false)
     React.useEffect(() => {
         const getQuestion = async () => {
             const res = await fetch('/question/' + questions[questionNumber-1])
             var json = await res.json()
+            setShowTslt(false)
             setQuestion(json)
         }
+        const getFlagStatus = () => {
+            setFlag(leftPanelList[questionNumber-1].status === 'flagged')
+        }
+        getFlagStatus()
         getQuestion()
     },[questionNumber])
 
@@ -87,7 +95,7 @@ const ExamView = () => {
     const { setFeedback } = bindActionCreators(feedbackActionCreators, dispatch)
     const { updateStatus } = bindActionCreators(leftBarActionCreators, dispatch)
 
-    const [openDialogBox, setOpenDialogBox] = React.useState(false);
+    const [ openDialogBox, setOpenDialogBox ] = React.useState(false)
     const handleClickOpen = () => {
         setOpenDialogBox(true)
     }
@@ -98,7 +106,7 @@ const ExamView = () => {
         history.push('/')
     }
 
-    const [open, setOpen] = React.useState(false);
+    const [open, setOpen] = React.useState(false)
 
     const handleImageClickOpen = () => {
       setOpen(true)
@@ -112,7 +120,24 @@ const ExamView = () => {
         history.push('/')
     }
 
-    function showTranslation(){
+    function toogleFlag(){
+        let newStatus = flag ? 'answered' : 'flagged'
+        setFlag(!flag)
+        updateStatus({
+            questionId: questions[questionNumber-1],
+            status: newStatus
+        })
+    }
+
+    const [showTslt, setShowTslt] = React.useState(false)
+    const [translation, setTranslation] = React.useState('')
+    async function toggleTranslation(){
+        if(!showTslt){
+            const res = await fetch('/translation/' + question.text_id)
+            const json = await res.json()
+            setTranslation(json.text)
+        }
+        setShowTslt(!showTslt)
     }
 
     async function setupReview(){
@@ -200,7 +225,10 @@ const ExamView = () => {
                     <div className="tools">
                         {
                             mode==='exam' ? <Timer setTimeUsed={setTimeUsed} /> :
-                            <IconButton onClick={showTranslation} color="primary" aria-label="show image" component="span">
+                            <IconButton 
+                                onClick={toggleTranslation} 
+                                color="primary" aria-label="show image" component="span"
+                            >
                                 <TranslateIcon />
                             </IconButton>
                         }
@@ -209,10 +237,10 @@ const ExamView = () => {
                 {question!==null && 
                 <>
                     <div className="question-text-holder">
-                        <p>{question.text}</p>
+                        <p>{showTslt ? translation : question.text}</p>
                         {question.image_name !== '' && <Button onClick={handleImageClickOpen} variant="outlined" color="secondary" size="small">Show Image</Button>}
                     </div>
-                    <AnswerOptions mode={mode} examId={parseInt(examNumber)} questionId={question.id} chooseMoreThanOne={question.choose_more_than_one} />
+                    <AnswerOptions showTslt={showTslt} mode={mode} examId={parseInt(examNumber)} questionId={question.id} chooseMoreThanOne={question.choose_more_than_one} />
                 </>
                 }
                 <div className="question-btns-holder">
@@ -236,6 +264,10 @@ const ExamView = () => {
                                 Result
                             </Button>
                         </div>
+                    }
+                    {
+                        mode === 'exam' &&
+                        <Button onClick={toogleFlag} variant={flag ? 'contained' : 'outlined'} color="secondary" startIcon={<FlagIcon />}>Mark for review</Button>
                     }
                     <div className="question-btn-holder">
                         <Button className='question-btn' variant="contained"

@@ -12,7 +12,7 @@ const style = {
     borderRadius: 3
 }
 
-function OptionElement({ questionId, optionId, letter, optionText, correct }){
+function OptionElement({ showTslt, questionId, optionId, textId, letter, optionText, correct }){
     const feedbackObjArray = useSelector((state) => state.feedback)
     const feedbackObjByQuestionId = feedbackObjArray.find(feedbackObj => feedbackObj.questionId === questionId)
     const feedbackObj = feedbackObjByQuestionId.feedbackArray.find(feedbackObj => feedbackObj.optionId === optionId)
@@ -45,20 +45,32 @@ function OptionElement({ questionId, optionId, letter, optionText, correct }){
         changeFeedbackState()
     },[])
 
+    const [text, setText] = useState(optionText)
+    useEffect(() => {
+        var getTranslation = async () => {
+            const res = await fetch('/translation/' + textId)
+            const json = await res.json()
+            setText(json.text)
+        }
+        showTslt ? getTranslation() : setText(optionText)
+    }, [showTslt])
+
     return <ListItem className="options" button onClick={() => setFeedbackStateAndStore(questionId, optionId)}>
         <div><label className={`option-letter ${feedbackState ? correct ? 'correct-ans' : 'incorrect-ans' : ''}`}>{letter}.</label></div>
-        <label className={`option-label ${feedbackState ? correct ? 'correct-ans' : 'incorrect-ans' : ''}`}>{optionText}</label>
+        <label className={`option-label ${feedbackState ? correct ? 'correct-ans' : 'incorrect-ans' : ''}`}>{text}</label>
     </ListItem>
 }
 
-function OptionElements({questionId, options , answerKeys}){
+function OptionElements({showTslt, questionId, options , answerKeys}){
     var elements = []
     let i = 0
     for(let option of options){
         elements.push(
             <OptionElement 
+                showTslt={showTslt}
                 questionId={questionId}
                 optionId={option.id}
+                textId={option.text_id}
                 key={option.id} 
                 letter={String.fromCharCode(i+65)} 
                 optionText={option.text} 
@@ -71,7 +83,7 @@ function OptionElements({questionId, options , answerKeys}){
     return elements
 }
 
-const StudyAnswerOptions = ({ optionObj }) => {
+const StudyAnswerOptions = ({ showTslt, optionObj }) => {
     const [optionObject, setOptionObject] = useState(null)
     useEffect(() => {
         const getAnswerKeys = async () => {
@@ -87,7 +99,8 @@ const StudyAnswerOptions = ({ optionObj }) => {
         <div className="options-holder">
             {optionObject !== null &&
             <List sx={style} component="nav" aria-label="mailbox folders">
-                <OptionElements 
+                <OptionElements
+                    showTslt={showTslt}
                     questionId={optionObject.questionId} 
                     options={optionObject.options} 
                     answerKeys={optionObject.answerKeys}
