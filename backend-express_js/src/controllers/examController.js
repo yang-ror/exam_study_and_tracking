@@ -22,6 +22,7 @@ export const getExamById = (req, res) => {
 }
 
 export const submitExam = async (req, res) => {
+    console.log(req.body.selections)
     try{
         const questions = await Question.findAll({
             attributes: ['id'],
@@ -42,7 +43,11 @@ export const submitExam = async (req, res) => {
         })
 
         var score = req.body.selections.reduce((currentScore, selection) => {
-            return currentScore += options.find(op => op.id === selection).correct ? 1 : 0
+            if(selection !== null)
+                return currentScore += options.find(op => op.id === selection).correct ? 1 : 0
+            else{
+                return currentScore
+            }
         }, 0)
 
         const outOf = await Question.count({
